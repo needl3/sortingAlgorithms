@@ -48,13 +48,13 @@ class MergeSort:public VisualizeSort{
 		void sort(std::vector<sf::RectangleShape>&rects, bool debug=false){
 
 		}
-}
+};
 class QuickSort:public VisualizeSort{
 	public:
 		void sort(std::vector<sf::RectangleShape>&rects, bool debug=false){
 			
 		}
-}
+};
 int main(){
 //	BubbleSort vs;
 	InsertionSort vs;
