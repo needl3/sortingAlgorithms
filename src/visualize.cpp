@@ -19,13 +19,13 @@ VisualizeSort::VisualizeSort(){
 		rectangle.setFillColor(sf::Color(10,poss[i]/HEIGHT*255,poss[i]/HEIGHT*255));
 		rects.push_back(rectangle);
 	}
-	std::cout << "Size of created rects: " << rects.size();
 }
 
 void VisualizeSort::displayData(){
 	for (int i=0;i<DATA_BITS;i++){
 		std::cout << rects[i].getSize().y << " ";
 	}
+	std::cout << std::endl;
 }
 
 std::vector<sf::RectangleShape>& VisualizeSort::giveData(){

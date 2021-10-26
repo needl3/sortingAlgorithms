@@ -6,10 +6,10 @@
 class VisualizeSort
 {
 private:
-	const unsigned short FRAMERATE=10;
+	const unsigned short FRAMERATE=60;
 	const int WIDTH = sf::VideoMode::getDesktopMode().width;
 	const int HEIGHT = sf::VideoMode::getDesktopMode().height;
-	const unsigned short DATA_BITS = 20;
+	const unsigned short DATA_BITS = 200;
 
 	sf::RenderWindow *window;
 	sf::Event *events;

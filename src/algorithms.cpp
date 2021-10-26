@@ -14,7 +14,8 @@ class BubbleSort: public VisualizeSort{
 						swap(rects[i],rects[i+1]);
 						changedIndexes[0] = i;
 						changedIndexes[1] = i+1;
-						renderChanges(changedIndexes);
+						if(!debug)
+							renderChanges(changedIndexes);
 						swapped = true;
 					}
 				}
@@ -35,7 +36,8 @@ class InsertionSort:public VisualizeSort{
 					swap(rects[j],rects[j+1]);
 					changedIndexes[0] = j;
 					changedIndexes[1] = j+1;
-					renderChanges(changedIndexes);
+					if (!debug)
+						renderChanges(changedIndexes);
 					j--;
 				}
 				swap(temp[0],rects[j+1]);
@@ -46,43 +48,48 @@ class InsertionSort:public VisualizeSort{
 };
 class MergeSort:public VisualizeSort{
 	public:
+
+		void mergeSort(const int left, const int right){
+		}
 		void sort(bool debug=false){
-			
+
 		}
 };
 class QuickSort:public VisualizeSort{
 	public:
-		int computePivot(int left, int right){
+		int computePivot(int left, int right, bool debug){
 			int pivot = right;
-//			std::cout << "Initial Pivot Element: " << rects[pivot].getSize().y << "  Initial Index: " << pivot << std::endl;
-			for(int i=left;i<pivot-1;i++){
-				if(rects[i].getSize().y > rects[i+1].getSize().y){
-					swap(rects[i],rects[i+1]);
-					changedIndexes[0] = i;
-					changedIndexes[1] = i+1;
-					renderChanges(changedIndexes);
-				}
+			int j = left-1;
+			for(int i=left;i<right;i++){
 				if(rects[i].getSize().y > rects[pivot].getSize().y){
-					swap(rects[i],rects[pivot]);
-					pivot = i;
+					j++;
+					swap(rects[i],rects[j]);
 					changedIndexes[0] = i;
-					changedIndexes[1] = pivot;
-					renderChanges(changedIndexes);	
+					changedIndexes[1] = j;
+					if (!debug)
+						renderChanges(changedIndexes);
 				}
 			}
-//			std::cout << "Final Pivot Element: " << rects[pivot].getSize().y << "  Final Index: " << pivot << std::endl << std::endl;
-			return pivot;
+			swap(rects[j+1],rects[right]);
+			rects[j+1].setFillColor(sf::Color::Red);
+			changedIndexes[0] = j+1;
+			changedIndexes[1] = right;
+			renderChanges(changedIndexes);
+			return j+1;
 		}
-		int quickSort(const int left, const int right){
-			if (left == right)
+		int quickSort(const int left, const int right, bool debug){
+			if (right <= left)
 				return true;
-			int pivot = computePivot(left,right);
-			quickSort(left, pivot-1);
-			quickSort(pivot+1,right);
+			int pivot = computePivot(left,right, debug);
+			quickSort(left, pivot-1, debug);
+			quickSort(pivot+1,right, debug);
 			return true;
 		}
 		void sort(bool debug=false){
-			quickSort(0,rects.size());
- 			renderChanges(changedIndexes,false,true);
+			renderChanges(changedIndexes,true);
+			quickSort(0,rects.size()-1, debug);
+			if (!debug)
+	 			renderChanges(changedIndexes,false,true);
+	 		isSorted = true;
 		}
 };

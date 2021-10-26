@@ -2,8 +2,8 @@
 
 int main(){
 //	BubbleSort s;
-	QuickSort s;
 //	InsertionSort s;
+	QuickSort s;
 	s.run();
 	return 0;
 }
