@@ -6,27 +6,29 @@
 class VisualizeSort
 {
 private:
-	const unsigned short FRAMERATE=100;
+	const unsigned short FRAMERATE=10;
 	const int WIDTH = sf::VideoMode::getDesktopMode().width;
 	const int HEIGHT = sf::VideoMode::getDesktopMode().height;
-	const unsigned short DATA_BITS = 100;
+	const unsigned short DATA_BITS = 20;
 
 	sf::RenderWindow *window;
 	sf::Event *events;
 
 protected:
+	int changedIndexes[2];
+
 	bool isSorted = false;
 
 	std::vector<sf::RectangleShape> rects;
 
-	void renderChanges(const short, bool renderAll = false);
+	void renderChanges(const int*, bool renderAll = false, bool lastAnimation = false);
 
 	void swap(sf::RectangleShape&, sf::RectangleShape&);
 
 public:
 	VisualizeSort();
 
-	virtual void sort(std::vector<sf::RectangleShape>&, bool debug = false) = 0;
+	virtual void sort(bool debug = false) = 0;
 
 	void displayData();
 

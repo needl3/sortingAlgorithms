@@ -15,10 +15,11 @@ VisualizeSort::VisualizeSort(){
 	std::random_shuffle(poss.begin(),poss.end());
 	for (int i=0;i<DATA_BITS;i++){
 		rectangle.setSize(sf::Vector2f(WIDTH/DATA_BITS,-poss[i]));
-		rectangle.setFillColor(sf::Color(100,poss[i]/HEIGHT*255,poss[i]/HEIGHT*255));
 		rectangle.setPosition((float)WIDTH/DATA_BITS*i,HEIGHT);
+		rectangle.setFillColor(sf::Color(10,poss[i]/HEIGHT*255,poss[i]/HEIGHT*255));
 		rects.push_back(rectangle);
 	}
+	std::cout << "Size of created rects: " << rects.size();
 }
 
 void VisualizeSort::displayData(){
@@ -43,7 +44,7 @@ void VisualizeSort::swap(sf::RectangleShape& rect1, sf::RectangleShape& rect2){
 	rect2.setFillColor(tempRect.getFillColor());
 }
 
-void VisualizeSort::renderChanges(const short givenIndex, bool renderAll /*= false*/){
+void VisualizeSort::renderChanges(const int givenIndexes[], bool renderAll /*= false*/, bool lastAnimation /*=false*/){
 	//Check for quit signal
 	window->pollEvent(*events);
 	if (events->key.code == sf::Keyboard::Q){
@@ -51,35 +52,35 @@ void VisualizeSort::renderChanges(const short givenIndex, bool renderAll /*= fal
 		exit(0);
 	}
 
-	if (!renderAll){
+	if (!renderAll and !lastAnimation){
 		sf::RectangleShape tempRect;
-		for (int i=givenIndex;i<givenIndex+2;i++){
-			tempRect.setPosition(rects[i].getPosition());
-			tempRect.setSize(sf::Vector2f(rects[i].getSize().x,-HEIGHT));
+		for (int i=0;i<2;i++){
+			tempRect.setPosition(rects[givenIndexes[i]].getPosition());
+			tempRect.setSize(sf::Vector2f(rects[givenIndexes[i]].getSize().x,-HEIGHT));
 			tempRect.setFillColor(sf::Color::Black);
 			window->draw(tempRect);
+			window->draw(rects[givenIndexes[i]]);
+		}
+		window->display();
+	}else if(renderAll and !lastAnimation){
+		//First Display at once
+		for(int i=0;i<DATA_BITS;i++){
 			window->draw(rects[i]);
 		}
 		window->display();
-	}else if(renderAll && !givenIndex){
+	}else if (!renderAll and lastAnimation){
 		//Last display animation
 		for(int i=0;i<DATA_BITS;i++){
 			rects[i].setFillColor(sf::Color::Cyan);
 			window->draw(rects[i]);
 			window->display();
 		}
-	}else{
-		//First Display at once
-		for(int i=0;i<DATA_BITS;i++){
-			window->draw(rects[i]);
-		}
-		window->display();
 	}
 }
 
 void VisualizeSort::run(){
 	//Draw initial shuffled states
-	renderChanges(1,true);
+	renderChanges(changedIndexes,true);
 	while(window->isOpen()){
 		window->pollEvent(*events);
 		switch (events->type){
@@ -91,7 +92,7 @@ void VisualizeSort::run(){
 	                window->close();
 				else{
 					if (!isSorted)
-		            	sort(rects);
+		            	sort();
 		        }
 	            break; 
     	}
