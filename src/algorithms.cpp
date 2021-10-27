@@ -47,17 +47,61 @@ class InsertionSort:public VisualizeSort{
 		}
 };
 class MergeSort:public VisualizeSort{
-	public:
-
-		void mergeSort(const int left, const int right){
+	private:
+		void merge(const int left, const int right, const int mid){
+			float tempArr[right-left+1];
+			sf::Color col[right-left+1];
+			int lptr=left, rptr = mid+1, count=0;
+			tempArr[right-left] = 1;
+			while(tempArr[right-left] == 1){
+				if(rptr>right){
+					tempArr[count] = rects[lptr].getSize().y;
+					col[count] = rects[lptr].getFillColor();
+					lptr++;
+				}else if(lptr > mid){
+					tempArr[count] = rects[rptr].getSize().y;
+					col[count] = rects[rptr].getFillColor();
+					rptr++;
+				}else if (rects[lptr].getSize().y > rects[rptr].getSize().y){
+					tempArr[count] = rects[lptr].getSize().y;
+					col[count] = rects[lptr].getFillColor();
+					lptr++;
+				}else if (rects[lptr].getSize().y < rects[rptr].getSize().y){
+					tempArr[count] = rects[rptr].getSize().y;
+					col[count] = rects[rptr].getFillColor();
+					rptr++;
+				}
+				count++;
+			}
+			count = 0;
+			for (int i=left;i<=right;i++){
+				rects[i].setSize(sf::Vector2f(rects[i].getSize().x, tempArr[count]));
+				rects[i].setFillColor(col[count]);
+				changedIndexes[0] = i;
+				changedIndexes[1] = i;
+				renderChanges(changedIndexes);
+				count++;
+			}
 		}
+		int mergeSort(const int left, const int right){
+			if (left>=right)
+				return 0;
+			const int mid = (left+right)/2;
+			mergeSort(left,mid);
+			mergeSort(mid+1,right);
+			merge(left,right, mid);
+			return 0;
+		}
+	public:
 		void sort(bool debug=false){
-
+//			renderChanges(changedIndexes,true);
+			mergeSort(0,rects.size()-1);
+			renderChanges(changedIndexes,false,true);
 		}
 };
 class QuickSort:public VisualizeSort{
 	public:
-		int computePivot(int left, int right, bool debug){
+		int computePivot(const int left, const int right, bool debug){
 			int pivot = right;
 			int j = left-1;
 			for(int i=left;i<right;i++){
@@ -74,7 +118,8 @@ class QuickSort:public VisualizeSort{
 			rects[j+1].setFillColor(sf::Color::Red);
 			changedIndexes[0] = j+1;
 			changedIndexes[1] = right;
-			renderChanges(changedIndexes);
+			if(!debug)
+				renderChanges(changedIndexes);
 			return j+1;
 		}
 		int quickSort(const int left, const int right, bool debug){

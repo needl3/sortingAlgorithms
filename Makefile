@@ -8,7 +8,7 @@ SRC_FILES = $(SOURCE_DIR)/*.cpp
 
 FINALEXE = ttt
 
-FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+FLAGS = -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
 build:
 	@$(COMPILER) $(SRC_FILES) -o $(BIN_DIR)/$(FINALEXE) $(FLAGS)
