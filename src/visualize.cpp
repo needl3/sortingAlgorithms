@@ -23,6 +23,7 @@ VisualizeSort::~VisualizeSort(){
 	delete events;
 	delete sound;
 	delete sbuf;
+	delete sort_thread;
 }
 void VisualizeSort::shuffle(int *arr){
 	int random_position,temp_var;
@@ -36,8 +37,8 @@ void VisualizeSort::shuffle(int *arr){
 void VisualizeSort::setTitle(std::string title){
 	window->setTitle(title);
 }
-void VisualizeSort::playBeep(float pitch){
-	sound->setPitch(pitch);
+void VisualizeSort::playBeep(int index){
+	sound->setPitch(1.0f+(float)data_array[index]/DATA_BITS);
 	sound->play();
 }
 void VisualizeSort::stopBeep(){
@@ -55,45 +56,22 @@ int* VisualizeSort::giveData(){
 	return data_array;
 }
 
-void VisualizeSort::swap(int l_index, int r_index){
+void VisualizeSort::swap(int l_index, int r_index,
+							void (*fptr)(std::chrono::milliseconds const&/* = std::this_thread::sleep_for*/)){
 	int temp = data_array[r_index];
 	data_array[r_index] = data_array[l_index];
 	data_array[l_index] = temp;
-	changedIndexes[0] = l_index;
-	changedIndexes[1] = r_index;
-	renderChanges(changedIndexes);
+	playBeep(r_index);
+	playBeep(l_index);
+	fptr(std::chrono::milliseconds(THREAD_DELAY));
 }
 
-void VisualizeSort::renderChanges(const int *givenIndexes, bool renderAll /*= false*/, bool lastAnimation /*=false*/){
+void VisualizeSort::renderChanges(bool last_animation /*=false*/,
+								  void (*fptr)(std::chrono::milliseconds const&) /* = std::this_thread::sleep_for*/)
+{
 	float rect_height;
 
-	//Check for quit signal
-	window->pollEvent(*events);
-	if (events->key.code == sf::Keyboard::Q){
-		window->close();
-		exit(0);
-	}
-	if (!renderAll and !lastAnimation){
-		for (int i=0;i<2;i++){
-			rect_height = -(float)data_array[givenIndexes[i]]/DATA_BITS*HEIGHT;
-			playBeep(1.0f+(float)data_array[givenIndexes[i]]/HEIGHT);
-
-			//Clear previous rectangle
-			rect_shape.setPosition(givenIndexes[i]*(rect_width+POSITION_OFFSET),HEIGHT);
-			rect_shape.setSize(sf::Vector2f(rect_width,-HEIGHT));
-			rect_shape.setFillColor(sf::Color::Black);
-			window->draw(rect_shape);
-
-			//Draw updated Rectangle in same position
-			rect_shape.setSize(sf::Vector2f(rect_width,rect_height));
-			rect_shape.setFillColor(sf::Color(50
-									,(float)givenIndexes[i]/WIDTH*255*rect_width
-									,(float)data_array[givenIndexes[i]]/HEIGHT*255
-									));
-			window->draw(rect_shape);
-		}
-		window->display();
-	}else if(renderAll and !lastAnimation){
+	if(!last_animation){
 		//First Display at once
 		for(int i=0;i<DATA_BITS;i++){
 			rect_height = -(float)data_array[i]/DATA_BITS*HEIGHT;
@@ -105,43 +83,49 @@ void VisualizeSort::renderChanges(const int *givenIndexes, bool renderAll /*= fa
 			rect_shape.setPosition(i*(rect_width+POSITION_OFFSET),HEIGHT);
 			window->draw(rect_shape);
 		}
-		window->display();
-		window->display();
-	}else if (!renderAll and lastAnimation){
+	}else if(last_animation){
 		//Last display animation
 		for(int i=0;i<DATA_BITS;i++){
 			rect_height = -(float)data_array[i]/DATA_BITS*HEIGHT;
-			playBeep(1.0f+(float)data_array[i]/DATA_BITS);
+			playBeep(i);
 			rect_shape.setFillColor(sf::Color::Cyan);
 			rect_shape.setSize(sf::Vector2f(rect_width,rect_height));
 			rect_shape.setPosition(i*(rect_width+POSITION_OFFSET),HEIGHT);
 			window->draw(rect_shape);
 			window->display();
+			fptr(std::chrono::milliseconds(THREAD_DELAY));
 		}
 	}
 }
-
-void VisualizeSort::run(){
-	//Draw initial shuffled states
-	renderChanges(changedIndexes,true);
-	while(window->isOpen()){
-		window->pollEvent(*events);
+void VisualizeSort::handleInputs(){
+	window->pollEvent(*events);
 		switch (events->type){
 	        case sf::Event::Closed:
+	        	kill_signal = true;
 	            window->close();
 	            break;
 	        case sf::Event::KeyPressed:
-	            if (events->key.code == sf::Keyboard::Q)
+	            if (events->key.code == sf::Keyboard::Q){
+	            	kill_signal = true;
 	                window->close();
+		        }
 				else{
-					if (!isSorted){
-//						sort_thread = new std::thread(&VisualizeSort::sort, this,false);
-						sort();
-					}
+					if (!is_sorted && !is_sorting)
+						sort_thread = new std::thread(&VisualizeSort::sort, this,false);
 		        }
 	            break;
     	}
+}
+void VisualizeSort::run(){
+	//Draw initial shuffled states
+	while(window->isOpen() && !is_sorted){
+		handleInputs();
+		window->clear();
+		renderChanges(false,nullptr);
 		window->display();
 	}
-//	sort_thread->detach();
+	sort_thread->join();
+
+//	Vice city Cheat to disable main thread exit after last animation... lul
+	while(window->isOpen()){handleInputs();}
 }

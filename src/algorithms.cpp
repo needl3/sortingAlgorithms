@@ -1,6 +1,5 @@
 #include <iostream>
 #include "visualize.hpp"
-#include <SFML/Graphics.hpp>
 
 class BubbleSort: public VisualizeSort{
 	public:
@@ -8,24 +7,20 @@ class BubbleSort: public VisualizeSort{
 			setTitle(typeid(this).name()+3);
 		}
 		void sort(bool debug = false){
-			renderChanges(changedIndexes,true);
 			bool swapped = true;;
-			while(swapped){
+			is_sorting = true;
+			while(swapped && !kill_signal){
 				swapped = false;
 				for (int i=0;i<DATA_BITS;i++){
 					if(data_array[i] > data_array[i+1]){
 						swap(i,i+1);
-						changedIndexes[0] = i;
-						changedIndexes[1] = i+1;
-						if(!debug)
-							renderChanges(changedIndexes);
 						swapped = true;
 					}
-//					std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				}
 			}
-			isSorted = true;
-			renderChanges(changedIndexes,false,true);
+			is_sorted = true;
+			renderChanges(true);
+			is_sorting = false;
 		}
 };
 
@@ -35,23 +30,21 @@ class InsertionSort:public VisualizeSort{
 			setTitle(typeid(this).name()+2);
 		}
 		void sort(bool debug = false){
+			is_sorting = true;
 			int temp;
-			for (int i=1;i<DATA_BITS;i++){
+			for (int i=1;i<DATA_BITS && !kill_signal;i++){
 				temp = i;
 				for(int j=i-1;j>=0;j--){
 					if (data_array[temp] < data_array[j]){
 						swap(temp,j);
-						changedIndexes[0] = temp;
-						changedIndexes[1] = j;
-						if(!debug)
-							renderChanges(changedIndexes);
 						temp = j;
 					}else
 						break;
 				}
 			}
-			isSorted = true;
-			renderChanges(changedIndexes, false,true);
+			is_sorted = true;
+			renderChanges(true);
+			is_sorting = false;
 		}
 };
 
@@ -61,7 +54,7 @@ class MergeSort:public VisualizeSort{
 			int tempArr[right-left+1];
 			int lptr=left, rptr = mid+1, count=0;
 			tempArr[right-left] = 1;
-			while(tempArr[right-left] == 1){
+			while(tempArr[right-left] == 1 && !kill_signal){
 				if(rptr>right){
 					tempArr[count] = data_array[lptr];
 					lptr++;
@@ -80,20 +73,17 @@ class MergeSort:public VisualizeSort{
 			count = 0;
 			for (int i=left;i<=right;i++){
 				data_array[i] = tempArr[count];
-				changedIndexes[0] = i;
-				changedIndexes[1] = i;
-				renderChanges(changedIndexes);
+				swap(i,i);
 				count++;
 			}
 		}
 		int mergeSort(const int left, const int right){
-			if (left>=right)
+			if (left>=right && !kill_signal)
 				return 0;
 			const int mid = (left+right)/2;
 			mergeSort(left,mid);
 			mergeSort(mid+1,right);
 			merge(left,right, mid);
-			isSorted = true;
 			return 0;
 		}
 	public:
@@ -101,12 +91,12 @@ class MergeSort:public VisualizeSort{
 			setTitle(typeid(this).name()+2);
 		}
 		void sort(bool debug=false){
-
+			is_sorting = true;
 			//Start sort
 			mergeSort(0,DATA_BITS-1);
-
-			//Last animation
-			renderChanges(changedIndexes,false,true);
+			is_sorted = true;
+			renderChanges(true);
+			is_sorting = false;
 		}
 };
 
@@ -115,21 +105,13 @@ class QuickSort:public VisualizeSort{
 		int computePivot(const int left, const int right, bool debug){
 			int pivot = right;
 			int j = left-1;
-			for(int i=left;i<right;i++){
+			for(int i=left;i<right && !kill_signal;i++){
 				if(data_array[i] < data_array[pivot]){
 					j++;
 					swap(i,j);
-					changedIndexes[0] = i;
-					changedIndexes[1] = j;
-					if (!debug)
-						renderChanges(changedIndexes);
 				}
 			}
 			swap(j+1,right);
-			changedIndexes[0] = j+1;
-			changedIndexes[1] = right;
-			if(!debug)
-				renderChanges(changedIndexes);
 			return j+1;
 		}
 		int quickSort(const int left, const int right, bool debug){
@@ -145,11 +127,10 @@ class QuickSort:public VisualizeSort{
 			setTitle(typeid(this).name()+2);
 		}
 		void sort(bool debug=false){
-			if(!debug)
-				renderChanges(changedIndexes,true);
+			is_sorting = true;
 			quickSort(0,DATA_BITS-1, debug);
-			if (!debug)
-	 			renderChanges(changedIndexes,false,true);
-	 		isSorted = true;
+	 		is_sorted = true;
+	 		is_sorting = false;
+			renderChanges(true);
 		}
 };
