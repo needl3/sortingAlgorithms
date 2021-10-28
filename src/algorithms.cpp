@@ -4,20 +4,24 @@
 
 class BubbleSort: public VisualizeSort{
 	public:
+		BubbleSort(){
+			setTitle(typeid(this).name()+3);
+		}
 		void sort(bool debug = false){
 			renderChanges(changedIndexes,true);
-			bool swapped = true;
+			bool swapped = true;;
 			while(swapped){
 				swapped = false;
-				for (int i=0;i<rects.size()-1;i++){
-					if(rects[i].getSize().y <  rects[i+1].getSize().y){
-						swap(rects[i],rects[i+1]);
+				for (int i=0;i<DATA_BITS;i++){
+					if(data_array[i] > data_array[i+1]){
+						swap(i,i+1);
 						changedIndexes[0] = i;
 						changedIndexes[1] = i+1;
 						if(!debug)
 							renderChanges(changedIndexes);
 						swapped = true;
 					}
+//					std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				}
 			}
 			isSorted = true;
@@ -27,56 +31,55 @@ class BubbleSort: public VisualizeSort{
 
 class InsertionSort:public VisualizeSort{
 	public:
+		InsertionSort(){
+			setTitle(typeid(this).name()+2);
+		}
 		void sort(bool debug = false){
-			for (int i=1;i<rects.size();i++){
-				std::vector<sf::RectangleShape> temp;
-				temp.push_back(rects[i]);
-				int j = i-1;
-				while(j>=0 && rects[j].getSize().y < temp[0].getSize().y){
-					swap(rects[j],rects[j+1]);
-					changedIndexes[0] = j;
-					changedIndexes[1] = j+1;
-					if (!debug)
-						renderChanges(changedIndexes);
-					j--;
+			int temp;
+			for (int i=1;i<DATA_BITS;i++){
+				temp = i;
+				for(int j=i-1;j>=0;j--){
+					if (data_array[temp] < data_array[j]){
+						swap(temp,j);
+						changedIndexes[0] = temp;
+						changedIndexes[1] = j;
+						if(!debug)
+							renderChanges(changedIndexes);
+						temp = j;
+					}else
+						break;
 				}
-				swap(temp[0],rects[j+1]);
 			}
 			isSorted = true;
-			renderChanges(changedIndexes,false, true);
+			renderChanges(changedIndexes, false,true);
 		}
 };
+
 class MergeSort:public VisualizeSort{
 	private:
 		void merge(const int left, const int right, const int mid){
-			float tempArr[right-left+1];
-			sf::Color col[right-left+1];
+			int tempArr[right-left+1];
 			int lptr=left, rptr = mid+1, count=0;
 			tempArr[right-left] = 1;
 			while(tempArr[right-left] == 1){
 				if(rptr>right){
-					tempArr[count] = rects[lptr].getSize().y;
-					col[count] = rects[lptr].getFillColor();
+					tempArr[count] = data_array[lptr];
 					lptr++;
 				}else if(lptr > mid){
-					tempArr[count] = rects[rptr].getSize().y;
-					col[count] = rects[rptr].getFillColor();
+					tempArr[count] = data_array[rptr];
 					rptr++;
-				}else if (rects[lptr].getSize().y > rects[rptr].getSize().y){
-					tempArr[count] = rects[lptr].getSize().y;
-					col[count] = rects[lptr].getFillColor();
+				}else if( data_array[lptr] < data_array[rptr]){
+					tempArr[count] = data_array[lptr];
 					lptr++;
-				}else if (rects[lptr].getSize().y < rects[rptr].getSize().y){
-					tempArr[count] = rects[rptr].getSize().y;
-					col[count] = rects[rptr].getFillColor();
+				}else if (data_array[lptr] > data_array[rptr]){
+					tempArr[count] = data_array[rptr];
 					rptr++;
 				}
 				count++;
 			}
 			count = 0;
 			for (int i=left;i<=right;i++){
-				rects[i].setSize(sf::Vector2f(rects[i].getSize().x, tempArr[count]));
-				rects[i].setFillColor(col[count]);
+				data_array[i] = tempArr[count];
 				changedIndexes[0] = i;
 				changedIndexes[1] = i;
 				renderChanges(changedIndexes);
@@ -90,32 +93,39 @@ class MergeSort:public VisualizeSort{
 			mergeSort(left,mid);
 			mergeSort(mid+1,right);
 			merge(left,right, mid);
+			isSorted = true;
 			return 0;
 		}
 	public:
+		MergeSort(){
+			setTitle(typeid(this).name()+2);
+		}
 		void sort(bool debug=false){
-//			renderChanges(changedIndexes,true);
-			mergeSort(0,rects.size()-1);
+
+			//Start sort
+			mergeSort(0,DATA_BITS-1);
+
+			//Last animation
 			renderChanges(changedIndexes,false,true);
 		}
 };
+
 class QuickSort:public VisualizeSort{
-	public:
+	private:
 		int computePivot(const int left, const int right, bool debug){
 			int pivot = right;
 			int j = left-1;
 			for(int i=left;i<right;i++){
-				if(rects[i].getSize().y > rects[pivot].getSize().y){
+				if(data_array[i] < data_array[pivot]){
 					j++;
-					swap(rects[i],rects[j]);
+					swap(i,j);
 					changedIndexes[0] = i;
 					changedIndexes[1] = j;
 					if (!debug)
 						renderChanges(changedIndexes);
 				}
 			}
-			swap(rects[j+1],rects[right]);
-			rects[j+1].setFillColor(sf::Color::Red);
+			swap(j+1,right);
 			changedIndexes[0] = j+1;
 			changedIndexes[1] = right;
 			if(!debug)
@@ -130,9 +140,14 @@ class QuickSort:public VisualizeSort{
 			quickSort(pivot+1,right, debug);
 			return true;
 		}
+	public:
+		QuickSort(){
+			setTitle(typeid(this).name()+2);
+		}
 		void sort(bool debug=false){
-			renderChanges(changedIndexes,true);
-			quickSort(0,rects.size()-1, debug);
+			if(!debug)
+				renderChanges(changedIndexes,true);
+			quickSort(0,DATA_BITS-1, debug);
 			if (!debug)
 	 			renderChanges(changedIndexes,false,true);
 	 		isSorted = true;
